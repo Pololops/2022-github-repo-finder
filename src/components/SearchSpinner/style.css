@@ -1,10 +1,10 @@
 .loader {
-  width: 48px;
-  height: 48px;
+  width: 24px;
+  height: 24px;
   display: block;
   margin: 20px auto;
   position: relative;
-  border: 3px solid #FFF;
+  border: 3px solid #000;
   border-radius: 50%;
   box-sizing: border-box;
   animation: animloader 2s linear infinite;
@@ -12,13 +12,13 @@
 .loader::after {
   content: '';
   box-sizing: border-box;
-  width: 6px;
-  height: 24px;
-  background: #FFF;
+  width: 3px;
+  height: 12px;
+  background: #000;
   transform: rotate(-45deg);
   position: absolute;
-  bottom: -20px;
-  left: 46px;
+  bottom: -10px;
+  left: 20px;
 }
 
 @keyframes animloader {

@@ -1,0 +1,16 @@
+.message {
+    display: flex;
+    flex-flow: row nowrap;
+    text-align: left;
+    justify-content: flex-start;
+    gap: 2rem;
+    background: white;
+
+    .content {
+        flex-grow: 1;
+    }
+
+    .loader {
+        margin-bottom: 0;
+    }
+}
