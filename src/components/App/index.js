@@ -61,7 +61,9 @@ function App() {
                 <Message message={message} isLoading={isLoading} />
             )}
 
-            {repos.items && <ReposResults repos={repos.items} />}
+            {Object.keys(repos).length > 0 && (
+                <ReposResults repos={repos.items} />
+            )}
         </div>
     );
 }
