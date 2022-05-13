@@ -1,20 +1,17 @@
 import PropTypes from 'prop-types';
-import { Card, Image } from 'semantic-ui-react';
+import { Card } from 'semantic-ui-react';
 
 export default function ReposResults({
-    avatar, name, owner, description,
+    avatar, name, company, description, link,
 }) {
     return (
-        <Card>
-            <Image src={avatar} wrapped ui={false} />
-            <Card.Content>
-                <Card.Header>{name}</Card.Header>
-                <Card.Meta>
-                    <span className="company">{owner.login}</span>
-                </Card.Meta>
-                <Card.Description>{description}</Card.Description>
-            </Card.Content>
-        </Card>
+        <Card
+            href={link}
+            image={avatar}
+            header={name}
+            meta={company}
+            description={description}
+        />
     );
 }
 
@@ -25,6 +22,7 @@ ReposResults.defaultProps = {
 ReposResults.propTypes = {
     avatar: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    owner: PropTypes.string.isRequired,
+    company: PropTypes.string.isRequired,
     description: PropTypes.string,
+    link: PropTypes.string.isRequired,
 };

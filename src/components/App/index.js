@@ -7,7 +7,7 @@ import SearchBar from 'src/components/SearchBar';
 import ReposResults from 'src/components/ReposResults';
 import Message from 'src/components/Message';
 import 'semantic-ui-css/semantic.min.css'; // Semantic UI minified CSS
-import './styles.css';
+import './styles.scss';
 
 // import data from 'src/data/repos';
 
@@ -34,14 +34,21 @@ function App() {
 
                 if (response.data !== undefined) {
                     setRepos(response.data);
-                    setMessage(
-                        `Nous avons trouvé ${response.data.total_count} repos`,
-                    );
+
+                    if (response.data.total_count === 0) {
+                        setMessage("Nous n'avons trouvé aucun repo");
+                    } else if (response.data.total_count === 1) {
+                        setMessage('Nous avons trouvé 1 repo');
+                    } else {
+                        setMessage(
+                            `Nous avons trouvé ${response.data.total_count} repos`,
+                        );
+                    }
                 }
             } catch (error) {
-            // setMessage(
-            //     'Une erreur est survenu, veuillez renouveler votre recherche !'
-            // );
+                setMessage(
+                    'Une erreur est survenu, veuillez renouveler votre recherche !',
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -57,11 +64,9 @@ function App() {
                 submitSearchForm={handleSubmitSearch}
             />
 
-            {message !== '' && (
-                <Message message={message} isLoading={isLoading} />
-            )}
+            <Message message={message} isLoading={isLoading} />
 
-            {Object.keys(repos).length > 0 && (
+            {(!isLoading && Object.keys(repos).length > 0) && (
                 <ReposResults repos={repos.items} />
             )}
         </div>

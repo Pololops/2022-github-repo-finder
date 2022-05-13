@@ -1,29 +1,29 @@
 import PropTypes from 'prop-types';
-import { Message } from 'semantic-ui-react';
+import { Segment, Container } from 'semantic-ui-react';
 import SearchSpinner from 'src/components/SearchSpinner';
 
 import './style.scss';
 
 export default function MessageComponent({ isLoading, message }) {
     return (
-        <Message>
+        <Segment className="message">
             {isLoading && <SearchSpinner />}
-            <Message.Content>
+            <Container className="content">
                 {isLoading ? (
                     <>
-                        <Message.Header>Une petite seconde</Message.Header>
+                        <b>Une petite seconde</b>
+                        <br />
                         Nous recherchons sur Githut...
                     </>
                 ) : (
                     <>
-                        <Message.Header>
-                            Résultat de la recherche :
-                        </Message.Header>
+                        <b>Résultat de la recherche :</b>
+                        <br />
                         {message}
                     </>
                 )}
-            </Message.Content>
-        </Message>
+            </Container>
+        </Segment>
     );
 }
 

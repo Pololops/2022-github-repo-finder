@@ -1,0 +1,12 @@
+
+.header {
+    text-align: center;
+
+    & h1 {
+        margin-top: -2rem;
+    }
+}
+
+.ui.header>img {
+    width: 320px !important;
+}

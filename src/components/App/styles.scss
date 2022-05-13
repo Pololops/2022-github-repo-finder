@@ -1,0 +1,9 @@
+@use 'src/styles/vars';
+
+.app {
+    height: 100%;
+    max-width: 900px;
+    margin: 0 auto 0 auto;
+    padding: 0 1rem;
+    background-color: vars.$alt-bg-color;
+}
