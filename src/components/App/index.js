@@ -14,48 +14,48 @@ import './styles.scss';
 function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
-    const [searchValue, setSearchValue] = useState('');
-    const [pageQueryRequest, setPageQueryRequest] = useState(1);
+    const [inputValue, setInputValue] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [queryPageNb, setQueryPageNb] = useState(0);
     const [repos, setRepos] = useState({});
     const [nextRepos, setNextRepos] = useState({});
-    const [offset, setOffset] = useState(0);
+    const [isListeningScroll, setIsListeningScroll] = useState(true);
 
-    const handleGithubData = async (queryString, pageNb) => {
+    // Double requête API : Nouvelle requête & requête pour charger plus de résultats
+    const handleGithubData = async () => {
         try {
-            const response = await axios.get(
-                `https://api.github.com/search/repositories?q=${queryString}&page=${pageNb}&per_page=99`,
-            );
+            const request = `https://api.github.com/search/repositories?q=${searchTerm}&page=${queryPageNb}&per_page=6`;
+
+            console.log(request);
+            const response = await axios.get(request);
 
             if (response.data !== undefined) {
-                if (pageNb === 1) {
-                    console.log('page 1');
+                if (queryPageNb === 1) {
+                    console.log(response.data);
                     setRepos(response.data);
 
                     if (response.data.total_count === 0) {
                         setMessage(
-                            `Nous n'avons trouvé aucun repo avec le terme : ${searchValue}`,
+                            `Nous n'avons trouvé aucun repo avec le terme : ${searchTerm}`,
                         );
                     } else if (response.data.total_count === 1) {
                         setMessage(
-                            `Nous avons trouvé 1 repo ave le terme : ${searchValue}`,
+                            `Nous avons trouvé 1 repo ave le terme : ${searchTerm}`,
                         );
                     } else {
                         setMessage(
-                            `Nous avons trouvé ${response.data.total_count} repos avec le terme : ${searchValue}`,
+                            `Nous avons trouvé ${response.data.total_count} repos avec le terme : ${searchTerm}`,
                         );
                     }
                 } else {
-                    console.log(`page suivante n°${pageNb}`);
-                    const nextReposMoreAndMore = [
-                        ...nextRepos,
-                        ...response.data.items,
-                    ];
+                    console.log([...nextRepos, ...response.data.items]);
 
-                    setPageQueryRequest(pageQueryRequest + 1);
-                    setNextRepos(nextReposMoreAndMore);
+                    // Ajout du nouveaux résultat de la requête API
+                    setNextRepos([...nextRepos, ...response.data.items]);
                 }
             }
         } catch (error) {
+            console.log(error);
             setMessage(
                 'Une erreur est survenu, veuillez renouveler votre recherche !',
             );
@@ -64,44 +64,65 @@ function App() {
         }
     };
 
-    const setScroll = () => {
-        setOffset(window.scrollY);
-    };
+    // Capture du scrolling pour déclencher une requête API au bas de la fenêtre
+    const handleScroll = () => {
+        if (isListeningScroll) {
+            const isAtBottom = document.documentElement.scrollHeight
+                    - document.documentElement.scrollTop
+                <= document.documentElement.clientHeight;
 
-    useEffect(() => {
-        window.addEventListener('scroll', setScroll);
-        console.log('offset : ', offset);
-        return () => {
-            window.removeEventListener('scroll', setScroll);
-        };
-    });
-
-    useEffect(() => {
-        if (offset === 250) {
-            handleGithubData(searchValue, pageQueryRequest);
+            if (isAtBottom) {
+                setIsListeningScroll(false);
+                setQueryPageNb(queryPageNb + 1);
+                console.log('counter : ', queryPageNb);
+            }
         }
-    }, [offset]);
-
-    const updateSearchValue = (event) => {
-        setSearchValue(event.target.value);
     };
 
+    // Met à jour la valeur du champs controllé Input
+    const updateInputValue = (event) => {
+        setInputValue(event.target.value);
+    };
+
+    // Lancement d'une toute nouvelle requête à l'API de Github lors du submit du formulaire
     const handleSubmitSearch = (event) => {
         event.preventDefault();
 
-        if (searchValue !== '') {
+        if (inputValue !== '') {
+            // Passe l'état de chargement à true
             setIsLoading(true);
-
-            handleGithubData(searchValue, pageQueryRequest);
+            // Sauvegarde le terme recherché pour les appels supplémentaires
+            setSearchTerm(inputValue);
+            // Réinitialisation de la valeur de champs de recherche
+            setInputValue('');
+            // Reset à 1 le numéro de la page de la requête fetch API
+            setQueryPageNb(1);
         }
     };
+
+    // Lancement d'une requête fetch API lors du changement de la valeur de queryString
+    useEffect(() => {
+        console.log('Search term : ', searchTerm);
+        console.log('Request page : ', queryPageNb);
+        if (queryPageNb > 0 && searchTerm !== '') {
+            handleGithubData();
+        }
+    }, [queryPageNb]);
+
+    // Listener sur le scoll de la fenêtre
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     return (
         <div className="app">
             <Header />
             <SearchBar
-                value={searchValue}
-                onUpdateValue={updateSearchValue}
+                value={inputValue}
+                onUpdateValue={updateInputValue}
                 submitSearchForm={handleSubmitSearch}
             />
 
@@ -110,7 +131,7 @@ function App() {
             {!isLoading && Object.keys(repos).length > 0 && (
                 <ReposResults repos={repos.items} />
             )}
-            {nextRepos.length > 1 && <ReposResults repos={nextRepos.items} />}
+            {nextRepos.length > 1 && <ReposResults repos={nextRepos} />}
         </div>
     );
 }
