@@ -4,7 +4,7 @@
     align-items: center;
     gap: 2rem;
 
-    & .ui.content {
+    .app & .content {
         margin-left: 0 !important;
         margin-right: 0 !important;
     }

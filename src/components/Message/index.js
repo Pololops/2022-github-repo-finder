@@ -4,7 +4,7 @@ import SearchSpinner from 'src/components/SearchSpinner';
 
 import './style.scss';
 
-export default function MessageComponent({ isLoading, message }) {
+export default function Message({ message, isLoading }) {
     return (
         <Segment className="message">
             {isLoading && <SearchSpinner />}
@@ -31,7 +31,7 @@ export default function MessageComponent({ isLoading, message }) {
     );
 }
 
-MessageComponent.propTypes = {
-    isLoading: PropTypes.bool.isRequired,
+Message.propTypes = {
     message: PropTypes.string.isRequired,
+    isLoading: PropTypes.bool.isRequired,
 };
