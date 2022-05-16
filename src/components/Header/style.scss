@@ -1,5 +1,5 @@
 
-.header {
+.app-header {
     text-align: center;
 
     & h1 {
@@ -7,6 +7,6 @@
     }
 }
 
-.ui.header>img {
+.ui.app-header>img {
     width: 320px !important;
 }

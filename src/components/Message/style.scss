@@ -4,6 +4,11 @@
     align-items: center;
     gap: 2rem;
 
+    .app & .content {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
     & .loader {
         flex-grow: 0;
         flex-shrink: 0;

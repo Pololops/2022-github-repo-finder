@@ -1,9 +1,18 @@
-@use 'src/styles/vars';
-
-.cards {
-    background-color: vars.$alt-bg-color;
+.app .ui.cards {
+    background-color: var(--alt-bg-color);
+    padding-bottom: 10rem;
 
     animation: fadein 1s ease-out;
+
+    @media screen and (max-width: 767px) {
+        & {
+            margin-top: 0;
+        }
+    }
+
+    & .card:hover {
+        rotate: (30);
+    }
 }
 
 @keyframes fadein {

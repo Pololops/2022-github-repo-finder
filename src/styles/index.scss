@@ -1,14 +1,9 @@
 @use 'reset';
 @use 'vars';
 
-body {
-  font-family: sans-serif;
+html body {
   margin: 0;
-}
-
-body {
-  font-family: sans-serif;
-  background-color: vars.$bg-color !important;
+  background-color: var(--bg-color);
 }
 
 #root {
