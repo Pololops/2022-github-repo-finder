@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { Card } from 'semantic-ui-react';
+
 import Repo from './Repo';
 
 import './style.scss';
@@ -9,7 +10,7 @@ export default function ReposResults({ repos }) {
         <Card.Group itemsPerRow={3}>
             {repos.map((repo) => (
                 <Repo
-                    key={repo.id}
+                    key={repo.id + Math.random()}
                     avatar={repo.owner.avatar_url}
                     name={repo.name}
                     company={repo.owner.login}

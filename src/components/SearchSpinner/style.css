@@ -9,6 +9,7 @@
   box-sizing: border-box;
   animation: animloader 2s linear infinite;
 }
+
 .loader::after {
   content: '';
   box-sizing: border-box;

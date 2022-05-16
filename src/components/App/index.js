@@ -6,6 +6,7 @@ import Header from 'src/components/Header';
 import SearchBar from 'src/components/SearchBar';
 import ReposResults from 'src/components/ReposResults';
 import Message from 'src/components/Message';
+
 import 'semantic-ui-css/semantic.min.css'; // Semantic UI minified CSS
 import './styles.scss';
 
@@ -16,29 +17,34 @@ function App() {
     const [message, setMessage] = useState('');
     const [inputValue, setInputValue] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [queryPageNb, setQueryPageNb] = useState(0);
-    const [repos, setRepos] = useState({});
-    const [nextRepos, setNextRepos] = useState({});
+    const [queryPageNb, setQueryPageNb] = useState(1);
+    const [reposItems, setReposItems] = useState([]);
     const [isListeningScroll, setIsListeningScroll] = useState(true);
 
     // Double requête API : Nouvelle requête & requête pour charger plus de résultats
     const handleGithubData = async () => {
         try {
-            const request = `https://api.github.com/search/repositories?q=${searchTerm}&page=${queryPageNb}&per_page=6`;
+            const request = `https://api.github.com/search/repositories?q=${searchTerm}&page=${queryPageNb}&per_page=15`;
 
-            console.log(request);
             const response = await axios.get(request);
 
             if (response.data !== undefined) {
-                if (queryPageNb === 1) {
-                    console.log(response.data);
-                    setRepos(response.data);
+                if (queryPageNb > 1) {
+                    if (response.data.items.length > 1) {
+                        setIsListeningScroll(true);
+                    }
 
-                    if (response.data.total_count === 0) {
+                    // Ajout du nouveaux résultat de la requête API
+                    setReposItems([...reposItems, ...response.data.items]);
+                } else {
+                    setIsListeningScroll(true);
+                    setReposItems(response.data.items);
+
+                    if (response.data.items.length === 0) {
                         setMessage(
                             `Nous n'avons trouvé aucun repo avec le terme : ${searchTerm}`,
                         );
-                    } else if (response.data.total_count === 1) {
+                    } else if (response.data.items.length === 1) {
                         setMessage(
                             `Nous avons trouvé 1 repo ave le terme : ${searchTerm}`,
                         );
@@ -47,15 +53,9 @@ function App() {
                             `Nous avons trouvé ${response.data.total_count} repos avec le terme : ${searchTerm}`,
                         );
                     }
-                } else {
-                    console.log([...nextRepos, ...response.data.items]);
-
-                    // Ajout du nouveaux résultat de la requête API
-                    setNextRepos([...nextRepos, ...response.data.items]);
                 }
             }
         } catch (error) {
-            console.log(error);
             setMessage(
                 'Une erreur est survenu, veuillez renouveler votre recherche !',
             );
@@ -68,13 +68,13 @@ function App() {
     const handleScroll = () => {
         if (isListeningScroll) {
             const isAtBottom = document.documentElement.scrollHeight
-                    - document.documentElement.scrollTop
+                    - (document.documentElement.scrollTop + 200)
                 <= document.documentElement.clientHeight;
 
             if (isAtBottom) {
+                //
                 setIsListeningScroll(false);
                 setQueryPageNb(queryPageNb + 1);
-                console.log('counter : ', queryPageNb);
             }
         }
     };
@@ -102,20 +102,22 @@ function App() {
 
     // Lancement d'une requête fetch API lors du changement de la valeur de queryString
     useEffect(() => {
-        console.log('Search term : ', searchTerm);
-        console.log('Request page : ', queryPageNb);
-        if (queryPageNb > 0 && searchTerm !== '') {
+        if (queryPageNb >= 1 && searchTerm !== '') {
             handleGithubData();
         }
-    }, [queryPageNb]);
+    }, [searchTerm, queryPageNb]);
 
-    // Listener sur le scoll de la fenêtre
+    // Active le listener sur le scoll de la fenêtre dès que reposItems est mis à jour
     useEffect(() => {
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
+        if (isListeningScroll) {
+            window.addEventListener('scroll', handleScroll);
+            return () => {
+                window.removeEventListener('scroll', handleScroll);
+            };
+        }
+
+        return null;
+    }, [reposItems]);
 
     return (
         <div className="app">
@@ -128,10 +130,9 @@ function App() {
 
             <Message message={message} isLoading={isLoading} />
 
-            {!isLoading && Object.keys(repos).length > 0 && (
-                <ReposResults repos={repos.items} />
+            {Object.keys(reposItems).length > 0 && (
+                <ReposResults repos={reposItems} />
             )}
-            {nextRepos.length > 1 && <ReposResults repos={nextRepos} />}
         </div>
     );
 }

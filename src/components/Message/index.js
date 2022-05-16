@@ -17,7 +17,11 @@ export default function MessageComponent({ isLoading, message }) {
                     </>
                 ) : (
                     <>
-                        <b>{message ? 'Résultat de la recherche :' : 'Faites une recherche !'}</b>
+                        <b>
+                            {message
+                                ? 'Résultat de la recherche :'
+                                : 'Faites une recherche !'}
+                        </b>
                         <br />
                         {message}
                     </>
