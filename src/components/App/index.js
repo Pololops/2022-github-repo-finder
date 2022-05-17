@@ -54,7 +54,8 @@ function filteredData(arrayItems, pageNb) {
 
 export default function App() {
     // Initialisation de tous les états (states) de l'application
-    const [message, setMessage] = useState(''); // message du résultat
+    const [errorMessage, setErrorMessage] = useState(''); // message du résultat
+    const [totalCount, setTotalCount] = useState(0); // nombre de résultats
     const [inputValue, setInputValue] = useState(''); // valeur saisie dans l'input
     const [query, setQuery] = useState(''); // Récupération de la valeur de l'input lors du submit
     const [queryPageNb, setQueryPageNb] = useState(1); // le numéro de la page de la requête API
@@ -62,56 +63,42 @@ export default function App() {
     const [isLoading, setIsLoading] = useState(false); // l'état de chargement
 
     // Double requête API : Nouvelle requête & requête pour charger plus de résultats
-    const handleGithubData = async () => {
-        // Changement de l'état de chargement des data pour afficher le spinner
-        setIsLoading(true);
-
+    const handleData = async () => {
         try {
             // Envoi et récupération de la requête à l'API
             const request = `https://api.github.com/search/repositories?q=${query}&sort=starts&order=desc&page=${queryPageNb}&per_page=15`;
 
             const response = await axios.get(request);
 
-            if (
-                response.data && response.data !== undefined
-                && response.data.items.length > 0
-            ) {
+            if (response.data && response.data !== undefined) {
+                if (response.data.items.length > 0) {
                 // Filtrage et formatage des data reçues
-                const newReposItems = await filteredData(
-                    response.data.items, // Les données reçues
-                    queryPageNb, // le numéro de la page pour formater une clé vraiment unique
-                );
+                    const newReposItems = await filteredData(
+                        response.data.items, // Les données reçues
+                        queryPageNb, // le numéro de la page pour formater une clé vraiment unique
+                    );
 
-                if (queryPageNb > 1) {
-                    // Ajout du nouveaux résultat de la requête API en filtrant les id en doublon
-                    setReposItems([...reposItems, ...newReposItems]);
-                } else {
-                    // setIsListeningScroll(true);
-                    setReposItems(newReposItems);
-
-                    // Formatage du message affichant le total des résultats trouvés
-                    if (newReposItems.length === 0) {
-                        // Si aucun résultat
-                        setMessage(
-                            `Nous n'avons trouvé aucun repo avec le terme : ${query}`,
-                        );
-                    } else if (newReposItems.length === 1) {
-                        // Si un seul résultat
-                        setMessage(
-                            `Nous avons trouvé 1 repo avec le terme : ${query}`,
-                        );
+                    if (queryPageNb > 1) {
+                        // Ajout des data à la suite des anciennes dans le state reposItems
+                        setReposItems([...reposItems, ...newReposItems]);
                     } else {
-                        // Si plus d'un résultat
-                        setMessage(
-                            `Nous avons trouvé ${response.data.total_count} repos avec le terme : ${query}`,
-                        );
+                        // Stockage des premières data dans le state reposItems
+                        setReposItems(newReposItems);
+
+                        // Stockage du nombre de résulats obtenu lors de la requête API
+                        setTotalCount(response.data.total_count);
                     }
+                } else {
+                    // Si 0 résultat trouvé, reset des data dans le state reposItems
+                    setReposItems([]);
                 }
             }
         } catch (err) {
             // Formatage du message en cas d'erreur
-            setMessage(
-                `Une erreur ${err.response.status ?? 'inconnue'} est survenu, veuillez renouveler votre recherche !`,
+            setErrorMessage(
+                `Une erreur ${
+                    err.response.status ?? 'inconnue'
+                } est survenu, veuillez renouveler votre recherche !`,
             );
         } finally {
             // Changement de l'état de chargement des data pour masquer le spinner
@@ -151,10 +138,17 @@ export default function App() {
 
     // Lancement d'une requête fetch API lors du changement de la valeur de queryString
     useEffect(() => {
-        if (queryPageNb >= 1 && query !== '') {
-            // Appel de la fonction qui lance la requête auprès de l'API
-            handleGithubData();
-        }
+        // pas d'async sur useEffect => création d'une IIFE async dans le useEffect
+        // ? IIFE = Immediately-Invoked Function Expression
+        (async () => {
+            if (queryPageNb >= 1 && query !== '') {
+                // Changement de l'état de chargement des data pour afficher le spinner
+                setIsLoading(true);
+
+                // Appel de la fonction qui lance la requête auprès de l'API
+                await handleData();
+            }
+        })();
     }, [query, queryPageNb]);
 
     // Active le listener sur le scoll de la fenêtre dès que reposItems est mis à jour
@@ -177,11 +171,14 @@ export default function App() {
                 submitSearchForm={handleFormSubmit}
             />
 
-            <Message message={message} isLoading={isLoading} />
+            <Message
+                errorMessage={errorMessage}
+                isLoading={isLoading}
+                queryTerm={query}
+                totalCount={totalCount}
+            />
 
-            {reposItems.length > 0 && (
-                <ReposResults repos={reposItems} />
-            )}
+            {reposItems.length > 0 && <ReposResults repos={reposItems} />}
         </div>
     );
 }
