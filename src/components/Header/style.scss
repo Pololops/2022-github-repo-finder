@@ -1,12 +1,21 @@
-
 .app-header {
     text-align: center;
+    margin-bottom: 1rem;
 
     & h1 {
         margin-top: -2rem;
     }
 }
 
-.ui.app-header>img {
-    width: 320px !important;
+.app-header > img {
+    width: 320px;
+}
+
+.app .app-header .ui.menu .item {
+    // color: black;
+    transition: .3s;
+}
+.app .app-header .ui.menu .active.item {
+    color: #4183c4 !important;
+    cursor: default;
 }

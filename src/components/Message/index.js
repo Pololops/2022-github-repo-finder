@@ -53,11 +53,15 @@ export default function Message({
                         <br />
                         {errorMessage !== '' && errorMessage}
                         {errorMessage === ''
+                            && queryTerm !== ''
                             && totalCount === 0
                             && `Nous n'avons trouvé aucun repo avec le terme : ${queryTerm}`}
                         {errorMessage === ''
+                            && queryTerm !== ''
                             && totalCount > 0
-                            && `Nous avons trouvé ${counter} repo${totalCount > 1 ? 's' : ''} avec le terme : ${queryTerm}`}
+                            && `Nous avons trouvé ${counter} repo${
+                                totalCount > 1 ? 's' : ''
+                            } avec le terme : ${queryTerm}`}
                     </>
                 )}
             </Container>
