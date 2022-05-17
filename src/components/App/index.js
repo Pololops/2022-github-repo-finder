@@ -27,60 +27,81 @@ function truncateDescription(string, wordsNumber) {
     return truncateString;
 }
 
+// Reformate les data pour ne garder que les clés utilent
+/**
+ * Fonction de formatage de data
+ * @param {array} arrayItems un tableau de données reçu lors d'un requête Axios
+ * @param {number} pageNb le numéro de la page utilisé lors de la requête Axios
+ * @returns {array} un tableau d'objets formatés
+ */
+function filteredData(arrayItems, pageNb) {
+    return arrayItems.map((item) => {
+        // Création d'un résumé si la description est trop longue
+        const resume = item.description
+            ? truncateDescription(item.description, 20)
+            : 'no description';
+
+        return {
+            id: item.id + pageNb, // génère un id vraiment unique même en cas de doublons
+            avatar: item.owner.avatar_url,
+            name: item.name,
+            owner: item.owner.login,
+            description: resume,
+            link: item.html_url,
+        };
+    });
+}
+
 export default function App() {
-    const [message, setMessage] = useState('');
-    const [inputValue, setInputValue] = useState('');
-    const [query, setQuery] = useState('');
-    const [queryPageNb, setQueryPageNb] = useState(1);
-    const [reposItems, setReposItems] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Reformate les data pour ne garder que les clés utilent
-    const filteredData = (items) => items
-        .map((item) => {
-            const resume = (item.description) ? truncateDescription(item.description, 20)
-                : 'no description';
-
-            return {
-                id: item.id + queryPageNb, // génère un id vraiment unique même en cas de doublons
-                avatar: item.owner.avatar_url,
-                name: item.name,
-                owner: item.owner.login,
-                description: resume,
-                link: item.html_url,
-            };
-        });
+    // Initialisation de tous les états (states) de l'application
+    const [message, setMessage] = useState(''); // message du résultat
+    const [inputValue, setInputValue] = useState(''); // valeur saisie dans l'input
+    const [query, setQuery] = useState(''); // Récupération de la valeur de l'input lors du submit
+    const [queryPageNb, setQueryPageNb] = useState(1); // le numéro de la page de la requête API
+    const [reposItems, setReposItems] = useState([]); // l'array des datas reçus lors de la requête
+    const [isLoading, setIsLoading] = useState(false); // l'état de chargement
 
     // Double requête API : Nouvelle requête & requête pour charger plus de résultats
     const handleGithubData = async () => {
+        // Changement de l'état de chargement des data pour afficher le spinner
+        setIsLoading(true);
+
         try {
+            // Envoi et récupération de la requête à l'API
             const request = `https://api.github.com/search/repositories?q=${query}&sort=starts&order=desc&page=${queryPageNb}&per_page=15`;
 
             const response = await axios.get(request);
 
-            if (response.data !== undefined && response.data.items.length > 0) {
-                const newReposItems = await filteredData(response.data.items);
+            if (
+                response.data && response.data !== undefined
+                && response.data.items.length > 0
+            ) {
+                // Filtrage et formatage des data reçues
+                const newReposItems = await filteredData(
+                    response.data.items, // Les données reçues
+                    queryPageNb, // le numéro de la page pour formater une clé vraiment unique
+                );
 
                 if (queryPageNb > 1) {
-                    if (newReposItems.length > 1) {
-                        // setIsListeningScroll(true);
-                    }
-
                     // Ajout du nouveaux résultat de la requête API en filtrant les id en doublon
                     setReposItems([...reposItems, ...newReposItems]);
                 } else {
                     // setIsListeningScroll(true);
                     setReposItems(newReposItems);
 
+                    // Formatage du message affichant le total des résultats trouvés
                     if (newReposItems.length === 0) {
+                        // Si aucun résultat
                         setMessage(
                             `Nous n'avons trouvé aucun repo avec le terme : ${query}`,
                         );
                     } else if (newReposItems.length === 1) {
+                        // Si un seul résultat
                         setMessage(
                             `Nous avons trouvé 1 repo avec le terme : ${query}`,
                         );
                     } else {
+                        // Si plus d'un résultat
                         setMessage(
                             `Nous avons trouvé ${response.data.total_count} repos avec le terme : ${query}`,
                         );
@@ -88,11 +109,12 @@ export default function App() {
                 }
             }
         } catch (err) {
-            console.log(err);
+            // Formatage du message en cas d'erreur
             setMessage(
-                `Une erreur ${err.response.status} est survenu, veuillez renouveler votre recherche !`,
+                `Une erreur ${err.response.status ?? 'inconnue'} est survenu, veuillez renouveler votre recherche !`,
             );
         } finally {
+            // Changement de l'état de chargement des data pour masquer le spinner
             setIsLoading(false);
         }
     };
@@ -104,7 +126,6 @@ export default function App() {
             <= document.documentElement.clientHeight;
 
         if (isAtBottom) {
-            // setIsListeningScroll(false);
             setQueryPageNb(queryPageNb + 1);
         }
     };
@@ -131,10 +152,7 @@ export default function App() {
     // Lancement d'une requête fetch API lors du changement de la valeur de queryString
     useEffect(() => {
         if (queryPageNb >= 1 && query !== '') {
-            // Passe l'état de chargement à true
-            setIsLoading(true);
-
-            // Appel de la requête de l'API
+            // Appel de la fonction qui lance la requête auprès de l'API
             handleGithubData();
         }
     }, [query, queryPageNb]);
@@ -149,6 +167,7 @@ export default function App() {
         };
     }, [reposItems]);
 
+    // Affichage du composant en JSX
     return (
         <div className="app">
             <Header />
